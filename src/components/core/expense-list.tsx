@@ -42,6 +42,8 @@ interface ExpenseListProps {
   showFilters?: boolean; // New prop
 }
 
+const ALL_FILTER_VALUE = "__ALL__"; // Special value for "All" options
+
 export function ExpenseList({ 
   limit, 
   showTitle = true, 
@@ -70,13 +72,12 @@ export function ExpenseList({
     if (!transactions || transactions.length === 0) return [new Date().getFullYear()];
     const years = new Set<number>();
     transactions.forEach(t => {
-      // Ensure date is valid before trying to get FullYear
-      const dateObj = new Date(t.date + 'T00:00:00'); // Ensures date is parsed as local
+      const dateObj = new Date(t.date + 'T00:00:00'); 
       if (!isNaN(dateObj.getTime())) {
         years.add(dateObj.getFullYear());
       }
     });
-    if (years.size === 0) return [new Date().getFullYear()]; // Fallback if no valid dates
+    if (years.size === 0) return [new Date().getFullYear()]; 
     return Array.from(years).sort((a, b) => b - a);
   }, [transactions]);
 
@@ -208,11 +209,11 @@ export function ExpenseList({
         {showFilters && (
           <div className="flex flex-col sm:flex-row gap-4 mb-6 sm:items-center border-b pb-6">
             <Select 
-              value={selectedYear || ""} 
+              value={selectedYear || ALL_FILTER_VALUE} 
               onValueChange={(value) => {
-                const newYear = value === "" ? null : value;
+                const newYear = value === ALL_FILTER_VALUE ? null : value;
                 setSelectedYear(newYear);
-                if (!newYear) {
+                if (!newYear) { // If "All Years" is selected, clear month
                   setSelectedMonth(null); 
                 }
               }}
@@ -221,22 +222,22 @@ export function ExpenseList({
                 <SelectValue placeholder="Year" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">All Years</SelectItem>
+                <SelectItem value={ALL_FILTER_VALUE}>All Years</SelectItem>
                 {availableYears.map(year => (
                   <SelectItem key={year} value={String(year)}>{year}</SelectItem>
                 ))}
               </SelectContent>
             </Select>
             <Select 
-              value={selectedMonth || ""} 
-              onValueChange={(value) => setSelectedMonth(value === "" ? null : value)}
-              disabled={!selectedYear} 
+              value={selectedMonth || ALL_FILTER_VALUE} 
+              onValueChange={(value) => setSelectedMonth(value === ALL_FILTER_VALUE ? null : value)}
+              disabled={!selectedYear} // Disable if no year is selected (i.e., selectedYear is null)
             >
               <SelectTrigger className="w-full sm:w-[150px]">
                 <SelectValue placeholder="Month" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">All Months</SelectItem>
+                <SelectItem value={ALL_FILTER_VALUE}>All Months</SelectItem>
                 {monthOptions.map(month => (
                   <SelectItem key={month.value} value={month.value}>{month.label}</SelectItem>
                 ))}
@@ -246,7 +247,7 @@ export function ExpenseList({
               variant="outline" 
               onClick={() => { setSelectedMonth(null); setSelectedYear(null); }} 
               className="w-full sm:w-auto"
-              disabled={!selectedMonth && !selectedYear}
+              disabled={!selectedMonth && !selectedYear} // Disable if no filters are active
             >
               Clear Filters
             </Button>
