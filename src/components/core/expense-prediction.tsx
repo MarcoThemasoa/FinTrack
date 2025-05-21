@@ -169,8 +169,8 @@ export function ExpensePrediction() {
 
             <Alert variant="default" className="bg-accent/10 border-accent/50 mt-6">
               <Info className="h-5 w-5 text-accent" />
-              <AlertTitle className="text-accent-foreground font-semibold">Balance Impact Preview</AlertTitle>
-              <AlertDescription className="text-accent-foreground/90 space-y-1">
+              <AlertTitle className="text-foreground font-semibold">Balance Impact Preview</AlertTitle>
+              <AlertDescription className="text-foreground/90 space-y-1">
                 <p>Current Balance: <span className="font-semibold">Rp {currentBalance.toFixed(0)}</span></p>
                 <p>Total Predicted Expenses ({period}): <span className="font-semibold">Rp {totalPredictedAmount.toFixed(0)}</span></p>
                 <p className="border-t pt-1 mt-1">Estimated Balance After Deductions: <span className="font-bold text-lg">Rp {(currentBalance - totalPredictedAmount).toFixed(0)}</span></p>
