@@ -100,7 +100,7 @@ export function ExpenseList({
       )}
       <CardContent className={fullHeight ? "p-0" : ""}>
         {fullHeight ? (
-          <ScrollArea className="h-[calc(100vh-250px)]"> {/* Adjust height as needed */}
+          <ScrollArea className="h-[calc(100vh-258px)]"> {/* Adjusted height */}
            {cardContent}
           </ScrollArea>
         ) : (
