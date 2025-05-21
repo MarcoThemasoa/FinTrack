@@ -123,7 +123,7 @@ export function ExpenseList({
             <TableCell className="font-medium text-xs whitespace-nowrap">
               {new Date(transaction.date + 'T00:00:00').toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })}
             </TableCell>
-            <TableCell>
+            <TableCell className="whitespace-nowrap"> {/* Ensures this column contributes to table width */}
               <div className="font-medium">{transaction.name}</div>
               {transaction.description && (
                 <div className="text-xs text-muted-foreground hidden md:block">
