@@ -3,7 +3,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { LayoutDashboard, PlusCircle, ListChecks, DollarSign } from 'lucide-react'; // Added DollarSign
+import { LayoutDashboard, PlusCircle, ListChecks, DollarSign, Wand2 } from 'lucide-react'; // Added Wand2
 import {
   SidebarMenu,
   SidebarMenuItem,
@@ -14,8 +14,9 @@ import { cn } from '@/lib/utils';
 const navItems = [
   { href: '/', label: 'Dashboard', icon: LayoutDashboard },
   { href: '/add-expense', label: 'Add Expense', icon: PlusCircle },
-  { href: '/add-funds', label: 'Add Funds', icon: DollarSign }, // New item
+  { href: '/add-funds', label: 'Add Funds', icon: DollarSign },
   { href: '/reports', label: 'All Expenses', icon: ListChecks },
+  { href: '/expense-prediction', label: 'Expense Prediction', icon: Wand2 }, // New item
 ];
 
 export function AppSidebarNav() {
