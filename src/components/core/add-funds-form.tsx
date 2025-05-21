@@ -49,7 +49,7 @@ export function AddFundsForm() {
     addFunds(values.amount, values.description || "Funds Added"); // Pass description to context
     toast({
       title: "Funds Added",
-      description: `$${values.amount.toFixed(2)} has been successfully added to your balance.`,
+      description: `Rp ${values.amount.toFixed(0)} has been successfully added to your balance.`,
       variant: "default",
     });
     form.reset();
@@ -72,7 +72,7 @@ export function AddFundsForm() {
                 <FormItem>
                   <FormLabel>Amount to Add</FormLabel>
                   <FormControl>
-                    <Input type="number" step="0.01" placeholder="0.00" {...field} 
+                    <Input type="number" step="1" placeholder="0" {...field} 
                      className="[appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none" />
                   </FormControl>
                   <FormMessage />
@@ -103,3 +103,4 @@ export function AddFundsForm() {
     </Card>
   );
 }
+

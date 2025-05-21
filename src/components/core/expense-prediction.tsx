@@ -100,7 +100,7 @@ export function ExpensePrediction() {
                   {item.category}
                 </Badge>
               </TableCell>
-              <TableCell className="text-right font-semibold">${item.predictedAmount.toFixed(2)}</TableCell>
+              <TableCell className="text-right font-semibold">Rp {item.predictedAmount.toFixed(0)}</TableCell>
             </TableRow>
           ))}
         </TableBody>
@@ -171,9 +171,9 @@ export function ExpensePrediction() {
               <Info className="h-5 w-5 text-accent" />
               <AlertTitle className="text-accent-foreground font-semibold">Balance Impact Preview</AlertTitle>
               <AlertDescription className="text-accent-foreground/90 space-y-1">
-                <p>Current Balance: <span className="font-semibold">${currentBalance.toFixed(2)}</span></p>
-                <p>Total Predicted Expenses ({period}): <span className="font-semibold">${totalPredictedAmount.toFixed(2)}</span></p>
-                <p className="border-t pt-1 mt-1">Estimated Balance After Deductions: <span className="font-bold text-lg">${(currentBalance - totalPredictedAmount).toFixed(2)}</span></p>
+                <p>Current Balance: <span className="font-semibold">Rp {currentBalance.toFixed(0)}</span></p>
+                <p>Total Predicted Expenses ({period}): <span className="font-semibold">Rp {totalPredictedAmount.toFixed(0)}</span></p>
+                <p className="border-t pt-1 mt-1">Estimated Balance After Deductions: <span className="font-bold text-lg">Rp {(currentBalance - totalPredictedAmount).toFixed(0)}</span></p>
                 {(currentBalance - totalPredictedAmount) < 0 && 
                   <p className="text-destructive font-semibold">Warning: Predicted expenses may exceed your current balance.</p>
                 }
@@ -195,3 +195,4 @@ export function ExpensePrediction() {
     </Card>
   );
 }
+

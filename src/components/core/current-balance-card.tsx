@@ -11,13 +11,13 @@ import { useToast } from '@/hooks/use-toast';
 
 export function CurrentBalanceCard() {
   const { currentBalance, updateCurrentBalance } = useExpenses();
-  const [inputValue, setInputValue] = useState<string>(currentBalance.toFixed(2));
+  const [inputValue, setInputValue] = useState<string>(currentBalance.toFixed(0));
   const [isEditing, setIsEditing] = useState(false);
   const { toast } = useToast();
 
   useEffect(() => {
     if (!isEditing) {
-      setInputValue(currentBalance.toFixed(2));
+      setInputValue(currentBalance.toFixed(0));
     }
   }, [currentBalance, isEditing]);
 
@@ -27,7 +27,7 @@ export function CurrentBalanceCard() {
       updateCurrentBalance(newBalance);
       toast({
         title: "Balance Updated",
-        description: `Your current balance is now $${newBalance.toFixed(2)}.`,
+        description: `Your current balance is now Rp ${newBalance.toFixed(0)}.`,
       });
       setIsEditing(false);
     } else {
@@ -41,7 +41,7 @@ export function CurrentBalanceCard() {
 
   const handleCancel = () => {
     setIsEditing(false);
-    setInputValue(currentBalance.toFixed(2)); // Reset to current balance
+    setInputValue(currentBalance.toFixed(0)); // Reset to current balance
   }
 
   return (
@@ -56,14 +56,14 @@ export function CurrentBalanceCard() {
       <CardContent className="space-y-4">
         {!isEditing ? (
           <div className="flex items-center justify-between">
-            <p className="text-3xl font-bold">${currentBalance.toFixed(2)}</p>
+            <p className="text-3xl font-bold">Rp {currentBalance.toFixed(0)}</p>
             <Button variant="outline" onClick={() => setIsEditing(true)}>Edit</Button>
           </div>
         ) : (
           <div className="space-y-3">
             <Input
               type="number"
-              step="0.01"
+              step="1"
               value={inputValue}
               onChange={(e) => setInputValue(e.target.value)}
               placeholder="Enter new balance"
@@ -80,3 +80,4 @@ export function CurrentBalanceCard() {
     </Card>
   );
 }
+

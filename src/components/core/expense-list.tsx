@@ -123,7 +123,7 @@ export function ExpenseList({
             <TableCell className="font-medium text-xs whitespace-nowrap">
               {new Date(transaction.date + 'T00:00:00').toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })}
             </TableCell>
-            <TableCell> {/* TD itself does not need whitespace-nowrap if inner elements handle it */}
+            <TableCell>
               <div className="font-medium whitespace-nowrap">{transaction.name}</div>
               {transaction.description && (
                 <div className="text-xs text-muted-foreground hidden md:block whitespace-nowrap">
@@ -143,7 +143,7 @@ export function ExpenseList({
                 transaction.type === 'income' ? 'text-green-600 dark:text-green-500' : 'text-red-600 dark:text-red-500'
               )}
             >
-              {transaction.type === 'income' ? `+$${transaction.amount.toFixed(2)}` : `-$${transaction.amount.toFixed(2)}`}
+              {transaction.type === 'income' ? `+Rp ${transaction.amount.toFixed(0)}` : `-Rp ${transaction.amount.toFixed(0)}`}
             </TableCell>
             <TableCell className="text-center">
               <AlertDialog>
@@ -163,7 +163,7 @@ export function ExpenseList({
                       <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
                       <AlertDialogDescription>
                         This action cannot be undone. This will permanently delete the transaction
-                        "{transactionToDelete.name}" (Amount: ${transactionToDelete.amount.toFixed(2)})
+                        "{transactionToDelete.name}" (Amount: Rp {transactionToDelete.amount.toFixed(0)})
                         and adjust your balance accordingly.
                       </AlertDialogDescription>
                     </AlertDialogHeader>

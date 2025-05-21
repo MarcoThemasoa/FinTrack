@@ -84,7 +84,7 @@ export function ExpenseForm() {
     });
     toast({
       title: "Expense Added",
-      description: `"${values.name}" has been successfully added and balance updated.`,
+      description: `"${values.name}" (Rp ${values.amount.toFixed(0)}) has been successfully added and balance updated.`,
       variant: "default",
     });
     form.reset();
@@ -121,7 +121,7 @@ export function ExpenseForm() {
                   <FormItem>
                     <FormLabel>Amount</FormLabel>
                     <FormControl>
-                      <Input type="number" step="0.01" placeholder="0.00" {...field} 
+                      <Input type="number" step="1" placeholder="0" {...field} 
                        className="[appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                       />
                     </FormControl>
@@ -199,3 +199,4 @@ export function ExpenseForm() {
     </Card>
   );
 }
+
