@@ -44,9 +44,9 @@ interface ExpenseListProps {
 
 const ALL_FILTER_VALUE = "__ALL__"; // Special value for "All" options
 
-export function ExpenseList({ 
-  limit, 
-  showTitle = true, 
+export function ExpenseList({
+  limit,
+  showTitle = true,
   title = "Recent Transactions",
   description = "A list of your most recent financial activities.",
   fullHeight = false,
@@ -72,23 +72,23 @@ export function ExpenseList({
     if (!transactions || transactions.length === 0) return [new Date().getFullYear()];
     const years = new Set<number>();
     transactions.forEach(t => {
-      const dateObj = new Date(t.date + 'T00:00:00'); 
+      const dateObj = new Date(t.date + 'T00:00:00');
       if (!isNaN(dateObj.getTime())) {
         years.add(dateObj.getFullYear());
       }
     });
-    if (years.size === 0) return [new Date().getFullYear()]; 
+    if (years.size === 0) return [new Date().getFullYear()];
     return Array.from(years).sort((a, b) => b - a);
   }, [transactions]);
 
   const filteredTransactions = useMemo(() => {
-    if (!showFilters) return transactions; 
+    if (!showFilters) return transactions;
 
-    let items = [...transactions]; 
+    let items = [...transactions];
     if (selectedYear && selectedYear !== ALL_FILTER_VALUE) {
       items = items.filter(t => t.date.startsWith(selectedYear));
     }
-    if (selectedMonth && selectedMonth !== ALL_FILTER_VALUE && selectedYear && selectedYear !== ALL_FILTER_VALUE) { 
+    if (selectedMonth && selectedMonth !== ALL_FILTER_VALUE && selectedYear && selectedYear !== ALL_FILTER_VALUE) {
       items = items.filter(t => t.date.substring(5, 7) === selectedMonth);
     }
     return items;
@@ -105,16 +105,16 @@ export function ExpenseList({
     });
     setTransactionToDelete(null);
   };
-  
+
   const listContent = displayedTransactions.length > 0 ? (
     <Table className="min-w-max">
       <TableHeader>
         <TableRow>
-          <TableHead className="w-[100px]">Date</TableHead>
-          <TableHead>Name / Description</TableHead>
-          <TableHead>Category</TableHead>
-          <TableHead className="text-right">Amount</TableHead>
-          <TableHead className="w-[80px] text-center">Actions</TableHead> 
+          <TableHead className="w-[100px] whitespace-nowrap">Date</TableHead>
+          <TableHead className="whitespace-nowrap">Name / Description</TableHead>
+          <TableHead className="whitespace-nowrap">Category</TableHead>
+          <TableHead className="text-right whitespace-nowrap">Amount</TableHead>
+          <TableHead className="w-[80px] text-center whitespace-nowrap">Actions</TableHead>
         </TableRow>
       </TableHeader>
       <TableBody>
@@ -123,10 +123,10 @@ export function ExpenseList({
             <TableCell className="font-medium text-xs whitespace-nowrap">
               {new Date(transaction.date + 'T00:00:00').toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })}
             </TableCell>
-            <TableCell className="whitespace-nowrap"> {/* Ensures this column contributes to table width */}
-              <div className="font-medium">{transaction.name}</div>
+            <TableCell> {/* TD itself does not need whitespace-nowrap if inner elements handle it */}
+              <div className="font-medium whitespace-nowrap">{transaction.name}</div>
               {transaction.description && (
-                <div className="text-xs text-muted-foreground hidden md:block">
+                <div className="text-xs text-muted-foreground hidden md:block whitespace-nowrap">
                   {transaction.description}
                 </div>
               )}
@@ -137,7 +137,7 @@ export function ExpenseList({
                 {transaction.category}
               </Badge>
             </TableCell>
-            <TableCell 
+            <TableCell
               className={cn(
                 "text-right font-semibold whitespace-nowrap",
                 transaction.type === 'income' ? 'text-green-600 dark:text-green-500' : 'text-red-600 dark:text-red-500'
@@ -148,9 +148,9 @@ export function ExpenseList({
             <TableCell className="text-center">
               <AlertDialog>
                 <AlertDialogTrigger asChild>
-                  <Button 
-                    variant="ghost" 
-                    size="icon" 
+                  <Button
+                    variant="ghost"
+                    size="icon"
                     onClick={() => setTransactionToDelete(transaction)}
                     aria-label="Delete transaction"
                   >
@@ -205,16 +205,16 @@ export function ExpenseList({
           <CardDescription>{description}</CardDescription>
         </CardHeader>
       )}
-      <CardContent className="p-6"> 
+      <CardContent className="p-6">
         {showFilters && (
           <div className="flex flex-col sm:flex-row gap-4 mb-6 sm:items-center border-b pb-6">
-            <Select 
-              value={selectedYear || ALL_FILTER_VALUE} 
+            <Select
+              value={selectedYear || ALL_FILTER_VALUE}
               onValueChange={(value) => {
                 const newYear = value === ALL_FILTER_VALUE ? null : value;
                 setSelectedYear(newYear);
                 if (!newYear) { // If "All Years" is selected, clear month
-                  setSelectedMonth(null); 
+                  setSelectedMonth(null);
                 }
               }}
             >
@@ -228,8 +228,8 @@ export function ExpenseList({
                 ))}
               </SelectContent>
             </Select>
-            <Select 
-              value={selectedMonth || ALL_FILTER_VALUE} 
+            <Select
+              value={selectedMonth || ALL_FILTER_VALUE}
               onValueChange={(value) => setSelectedMonth(value === ALL_FILTER_VALUE ? null : value)}
               disabled={!selectedYear || selectedYear === ALL_FILTER_VALUE} // Disable if no year is selected or "All Years"
             >
@@ -243,9 +243,9 @@ export function ExpenseList({
                 ))}
               </SelectContent>
             </Select>
-            <Button 
-              variant="outline" 
-              onClick={() => { setSelectedMonth(null); setSelectedYear(null); }} 
+            <Button
+              variant="outline"
+              onClick={() => { setSelectedMonth(null); setSelectedYear(null); }}
               className="w-full sm:w-auto"
               disabled={(!selectedMonth || selectedMonth === ALL_FILTER_VALUE) && (!selectedYear || selectedYear === ALL_FILTER_VALUE)}
             >
