@@ -107,7 +107,7 @@ export function ExpenseList({
   };
   
   const listContent = displayedTransactions.length > 0 ? (
-    <Table className="min-w-max"> {/* Added min-w-max here */}
+    <Table className="min-w-max">
       <TableHeader>
         <TableRow>
           <TableHead className="w-[100px]">Date</TableHead>

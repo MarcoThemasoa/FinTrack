@@ -3,7 +3,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { LayoutDashboard, PlusCircle, DollarSign, Wand2 } from 'lucide-react'; // Removed ListChecks
+import { LayoutDashboard, PlusCircle, DollarSign, Wand2, ListChecks } from 'lucide-react'; // Added ListChecks
 import {
   SidebarMenu,
   SidebarMenuItem,
@@ -13,9 +13,9 @@ import { cn } from '@/lib/utils';
 
 const navItems = [
   { href: '/', label: 'Dashboard', icon: LayoutDashboard },
+  { href: '/all-transactions', label: 'All Transactions', icon: ListChecks }, // New "All Transactions" tab
   { href: '/add-expense', label: 'Add Expense', icon: PlusCircle },
   { href: '/add-funds', label: 'Add Funds', icon: DollarSign },
-  // { href: '/reports', label: 'All Expenses', icon: ListChecks }, // Removed this line
   { href: '/expense-prediction', label: 'Expense Prediction', icon: Wand2 },
 ];
 
