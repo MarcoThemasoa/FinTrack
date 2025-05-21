@@ -11,7 +11,7 @@ import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Separator } from "@/components/ui/separator"
-import { Sheet, SheetContent } from "@/components/ui/sheet"
+import { Sheet, SheetContent, SheetTitle } from "@/components/ui/sheet" // Added SheetTitle
 import { Skeleton } from "@/components/ui/skeleton"
 import {
   Tooltip,
@@ -195,7 +195,7 @@ const Sidebar = React.forwardRef<
     },
     ref
   ) => {
-    const { isMobile, state, openMobile, setOpenMobile, open } = useSidebar() // Added open here
+    const { isMobile, state, openMobile, setOpenMobile, open } = useSidebar() 
 
     if (collapsible === "none") {
       return (
@@ -226,6 +226,7 @@ const Sidebar = React.forwardRef<
             }
             side={side}
           >
+            <SheetTitle className="sr-only">Main Navigation</SheetTitle>
             <div className="flex h-full w-full flex-col">{children}</div>
           </SheetContent>
         </Sheet>
@@ -238,7 +239,7 @@ const Sidebar = React.forwardRef<
       <div
         ref={ref}
         className="group peer hidden md:block text-sidebar-foreground"
-        data-state={currentDesktopState} // Use currentDesktopState
+        data-state={currentDesktopState} 
         data-collapsible={currentDesktopState === "collapsed" ? collapsible : ""}
         data-variant={variant}
         data-side={side}
@@ -284,7 +285,7 @@ Sidebar.displayName = "Sidebar"
 const SidebarTrigger = React.forwardRef<
   React.ElementRef<typeof Button>,
   React.ComponentProps<typeof Button>
->(({ className, onClick, children, asChild, ...props }, ref) => {
+>(({ className, onClick, children, asChild = false, ...props }, ref) => {
   const { toggleSidebar } = useSidebar();
 
   return (
@@ -788,3 +789,4 @@ export {
   SidebarTrigger,
   useSidebar,
 }
+
