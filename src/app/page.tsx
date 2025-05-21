@@ -1,5 +1,7 @@
+
 import { ExpenseList } from "@/components/core/expense-list";
 import { ExpensePrediction } from "@/components/core/expense-prediction";
+import { CurrentBalanceCard } from "@/components/core/current-balance-card";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 
 export default function DashboardPage() {
@@ -19,7 +21,8 @@ export default function DashboardPage() {
         <div className="lg:col-span-2">
           <ExpenseList limit={5} title="Recent Expenses" description="A quick look at your latest financial activities." />
         </div>
-        <div className="lg:col-span-1">
+        <div className="lg:col-span-1 space-y-8">
+         <CurrentBalanceCard />
          <ExpensePrediction />
         </div>
       </div>

@@ -1,40 +1,71 @@
+
 "use client";
 
 import type { Expense } from '@/lib/types';
 import type { ReactNode } from 'react';
 import React, { createContext, useContext, useState, useEffect } from 'react';
 
+interface FinTrackData {
+  expenses: Expense[];
+  currentBalance: number;
+}
+
+const initialData: FinTrackData = {
+  expenses: [
+    { id: '1', name: 'Monthly Groceries', amount: 250, category: 'Groceries', date: '2024-07-01', description: 'Aldi haul' },
+    { id: '2', name: 'Netflix Subscription', amount: 15.99, category: 'Subscriptions', date: '2024-07-05', description: 'Monthly plan' },
+    { id: '3', name: 'Gas Bill', amount: 75.50, category: 'Utilities', date: '2024-07-10' },
+    { id: '4', name: 'Dinner with Friends', amount: 60, category: 'Food & Dining', date: '2024-07-12', description: 'Italian place' },
+    { id: '5', name: 'New Book', amount: 22, category: 'Shopping', date: '2024-07-15' },
+  ],
+  currentBalance: 1000, // Initial default balance
+};
+
 interface ExpenseContextType {
   expenses: Expense[];
+  currentBalance: number;
   addExpense: (expense: Omit<Expense, 'id'>) => void;
-  // Future methods: removeExpense, updateExpense
+  updateCurrentBalance: (newBalance: number) => void;
 }
 
 const ExpenseContext = createContext<ExpenseContextType | undefined>(undefined);
 
-const initialExpenses: Expense[] = [
-  { id: '1', name: 'Monthly Groceries', amount: 250, category: 'Groceries', date: '2024-07-01', description: 'Aldi haul' },
-  { id: '2', name: 'Netflix Subscription', amount: 15.99, category: 'Subscriptions', date: '2024-07-05', description: 'Monthly plan' },
-  { id: '3', name: 'Gas Bill', amount: 75.50, category: 'Utilities', date: '2024-07-10' },
-  { id: '4', name: 'Dinner with Friends', amount: 60, category: 'Food & Dining', date: '2024-07-12', description: 'Italian place' },
-  { id: '5', name: 'New Book', amount: 22, category: 'Shopping', date: '2024-07-15' },
-];
-
-
 export function ExpenseProvider({ children }: { children: ReactNode }) {
-  const [expenses, setExpenses] = useState<Expense[]>(() => {
-     if (typeof window !== 'undefined') {
-      const localData = localStorage.getItem('expenses');
-      return localData ? JSON.parse(localData) : initialExpenses;
-    }
-    return initialExpenses;
-  });
+  const [expenses, setExpenses] = useState<Expense[]>(initialData.expenses);
+  const [currentBalance, setCurrentBalanceState] = useState<number>(initialData.currentBalance);
 
   useEffect(() => {
+    // Load data from localStorage on initial client-side render
     if (typeof window !== 'undefined') {
-      localStorage.setItem('expenses', JSON.stringify(expenses));
+      try {
+        const localDataString = localStorage.getItem('finTrackData');
+        if (localDataString) {
+          const parsedData = JSON.parse(localDataString) as Partial<FinTrackData>;
+          setExpenses(parsedData.expenses ?? initialData.expenses);
+          setCurrentBalanceState(parsedData.currentBalance ?? initialData.currentBalance);
+        } else {
+          // If no data in localStorage, prime it with initialData
+          localStorage.setItem('finTrackData', JSON.stringify(initialData));
+        }
+      } catch (error) {
+        console.error("Error loading data from localStorage:", error);
+        // Fallback to initial data if parsing fails
+        setExpenses(initialData.expenses);
+        setCurrentBalanceState(initialData.currentBalance);
+         if (typeof window !== 'undefined') {
+            localStorage.setItem('finTrackData', JSON.stringify(initialData));
+         }
+      }
     }
-  }, [expenses]);
+  }, []);
+
+  useEffect(() => {
+    // Save data to localStorage whenever expenses or currentBalance change
+    if (typeof window !== 'undefined') {
+      const dataToSave: FinTrackData = { expenses, currentBalance };
+      localStorage.setItem('finTrackData', JSON.stringify(dataToSave));
+    }
+  }, [expenses, currentBalance]);
 
   const addExpense = (expenseData: Omit<Expense, 'id'>) => {
     const newExpense: Expense = {
@@ -44,8 +75,12 @@ export function ExpenseProvider({ children }: { children: ReactNode }) {
     setExpenses((prevExpenses) => [newExpense, ...prevExpenses]);
   };
 
+  const updateCurrentBalance = (newBalance: number) => {
+    setCurrentBalanceState(newBalance);
+  };
+
   return (
-    <ExpenseContext.Provider value={{ expenses, addExpense }}>
+    <ExpenseContext.Provider value={{ expenses, addExpense, currentBalance, updateCurrentBalance }}>
       {children}
     </ExpenseContext.Provider>
   );

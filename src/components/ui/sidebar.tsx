@@ -71,33 +71,54 @@ const SidebarProvider = React.forwardRef<
     const isMobile = useIsMobile()
     const [openMobile, setOpenMobile] = React.useState(false)
 
-    // This is the internal state of the sidebar.
-    // We use openProp and setOpenProp for control from outside the component.
-    const [_open, _setOpen] = React.useState(defaultOpen)
-    const open = openProp ?? _open
-    const setOpen = React.useCallback(
-      (value: boolean | ((value: boolean) => boolean)) => {
-        const openState = typeof value === "function" ? value(open) : value
-        if (setOpenProp) {
-          setOpenProp(openState)
-        } else {
-          _setOpen(openState)
-        }
+    const getInitialOpen = () => {
+      if (typeof window === 'undefined') return defaultOpen;
+      const cookieValue = document.cookie
+        .split('; ')
+        .find(row => row.startsWith(`${SIDEBAR_COOKIE_NAME}=`))
+        ?.split('=')[1];
+      if (cookieValue) {
+        return cookieValue === 'true';
+      }
+      return defaultOpen;
+    };
 
-        // This sets the cookie to keep the sidebar state.
-        document.cookie = `${SIDEBAR_COOKIE_NAME}=${openState}; path=/; max-age=${SIDEBAR_COOKIE_MAX_AGE}`
+    const [_open, _setOpen] = React.useState(getInitialOpen());
+    const open = openProp ?? _open
+    
+    React.useEffect(() => {
+      // Initialize or update state based on cookie only on client-side
+      if (typeof window !== 'undefined') {
+        const initialOpenState = getInitialOpen();
+        if (_open !== initialOpenState) {
+            _setOpen(initialOpenState);
+        }
+      }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
+
+
+    const setOpen = React.useCallback(
+      (value: boolean | ((currentOpen: boolean) => boolean)) => {
+        const newOpenState = typeof value === "function" ? value(open) : value;
+        if (setOpenProp) {
+          setOpenProp(newOpenState);
+        } else {
+          _setOpen(newOpenState);
+        }
+        if (typeof window !== 'undefined') {
+          document.cookie = `${SIDEBAR_COOKIE_NAME}=${newOpenState}; path=/; max-age=${SIDEBAR_COOKIE_MAX_AGE}`;
+        }
       },
       [setOpenProp, open]
-    )
+    );
 
-    // Helper to toggle the sidebar.
     const toggleSidebar = React.useCallback(() => {
       return isMobile
-        ? setOpenMobile((open) => !open)
-        : setOpen((open) => !open)
-    }, [isMobile, setOpen, setOpenMobile])
+        ? setOpenMobile((current) => !current)
+        : setOpen((current) => !current);
+    }, [isMobile, setOpen, setOpenMobile]);
 
-    // Adds a keyboard shortcut to toggle the sidebar.
     React.useEffect(() => {
       const handleKeyDown = (event: KeyboardEvent) => {
         if (
@@ -113,8 +134,6 @@ const SidebarProvider = React.forwardRef<
       return () => window.removeEventListener("keydown", handleKeyDown)
     }, [toggleSidebar])
 
-    // We add a state so that we can do data-state="expanded" or "collapsed".
-    // This makes it easier to style the sidebar with Tailwind classes.
     const state = open ? "expanded" : "collapsed"
 
     const contextValue = React.useMemo<SidebarContext>(
@@ -176,7 +195,7 @@ const Sidebar = React.forwardRef<
     },
     ref
   ) => {
-    const { isMobile, state, openMobile, setOpenMobile } = useSidebar()
+    const { isMobile, state, openMobile, setOpenMobile, open } = useSidebar() // Added open here
 
     if (collapsible === "none") {
       return (
@@ -212,13 +231,15 @@ const Sidebar = React.forwardRef<
         </Sheet>
       )
     }
+    
+    const currentDesktopState = open ? "expanded" : "collapsed";
 
     return (
       <div
         ref={ref}
         className="group peer hidden md:block text-sidebar-foreground"
-        data-state={state}
-        data-collapsible={state === "collapsed" ? collapsible : ""}
+        data-state={currentDesktopState} // Use currentDesktopState
+        data-collapsible={currentDesktopState === "collapsed" ? collapsible : ""}
         data-variant={variant}
         data-side={side}
       >
@@ -280,7 +301,7 @@ const SidebarTrigger = React.forwardRef<
       asChild={asChild}
       {...props}
     >
-      {asChild ? children : (
+      {asChild && children ? children : (
         <>
           <PanelLeft />
           <span className="sr-only">Toggle Sidebar</span>
