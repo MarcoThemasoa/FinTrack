@@ -55,6 +55,7 @@ const prompt = ai.definePrompt({
   input: {schema: PredictExpensesInputSchema},
   output: {schema: PredictExpensesOutputSchema},
   prompt: `You are a personal finance advisor. Analyze the historical expense data provided and predict upcoming expenses for the specified period.
+Your response must be purely data-driven based on the input and the requested output schema. Do not attempt to invoke external system calls or assume environment-specific functionalities beyond generating the structured data.
 
 Historical Data: {{{historicalData}}}
 Period: {{{period}}}
@@ -103,3 +104,4 @@ const predictExpensesFlow = ai.defineFlow(
     return output;
   }
 );
+
