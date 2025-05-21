@@ -85,10 +85,10 @@ export function ExpenseList({
     if (!showFilters) return transactions; 
 
     let items = [...transactions]; 
-    if (selectedYear) {
+    if (selectedYear && selectedYear !== ALL_FILTER_VALUE) {
       items = items.filter(t => t.date.startsWith(selectedYear));
     }
-    if (selectedMonth && selectedYear) { 
+    if (selectedMonth && selectedMonth !== ALL_FILTER_VALUE && selectedYear && selectedYear !== ALL_FILTER_VALUE) { 
       items = items.filter(t => t.date.substring(5, 7) === selectedMonth);
     }
     return items;
@@ -107,7 +107,7 @@ export function ExpenseList({
   };
   
   const listContent = displayedTransactions.length > 0 ? (
-    <Table>
+    <Table className="min-w-max"> {/* Added min-w-max here */}
       <TableHeader>
         <TableRow>
           <TableHead className="w-[100px]">Date</TableHead>
@@ -120,7 +120,7 @@ export function ExpenseList({
       <TableBody>
         {displayedTransactions.map((transaction) => (
           <TableRow key={transaction.id}>
-            <TableCell className="font-medium text-xs">
+            <TableCell className="font-medium text-xs whitespace-nowrap">
               {new Date(transaction.date + 'T00:00:00').toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })}
             </TableCell>
             <TableCell>
@@ -132,14 +132,14 @@ export function ExpenseList({
               )}
             </TableCell>
             <TableCell>
-              <Badge variant="outline" className="flex items-center gap-1.5 w-fit">
+              <Badge variant="outline" className="flex items-center gap-1.5 w-fit whitespace-nowrap">
                 <CategoryIcon category={transaction.category} className="h-3.5 w-3.5" />
                 {transaction.category}
               </Badge>
             </TableCell>
             <TableCell 
               className={cn(
-                "text-right font-semibold",
+                "text-right font-semibold whitespace-nowrap",
                 transaction.type === 'income' ? 'text-green-600 dark:text-green-500' : 'text-red-600 dark:text-red-500'
               )}
             >
@@ -231,7 +231,7 @@ export function ExpenseList({
             <Select 
               value={selectedMonth || ALL_FILTER_VALUE} 
               onValueChange={(value) => setSelectedMonth(value === ALL_FILTER_VALUE ? null : value)}
-              disabled={!selectedYear} // Disable if no year is selected (i.e., selectedYear is null)
+              disabled={!selectedYear || selectedYear === ALL_FILTER_VALUE} // Disable if no year is selected or "All Years"
             >
               <SelectTrigger className="w-full sm:w-[150px]">
                 <SelectValue placeholder="Month" />
@@ -247,7 +247,7 @@ export function ExpenseList({
               variant="outline" 
               onClick={() => { setSelectedMonth(null); setSelectedYear(null); }} 
               className="w-full sm:w-auto"
-              disabled={!selectedMonth && !selectedYear} // Disable if no filters are active
+              disabled={(!selectedMonth || selectedMonth === ALL_FILTER_VALUE) && (!selectedYear || selectedYear === ALL_FILTER_VALUE)}
             >
               Clear Filters
             </Button>
