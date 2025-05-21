@@ -11,19 +11,25 @@ interface FinTrackData {
   currentBalance: number;
 }
 
-// Initial data now includes types for transactions
+// Initial data now includes types for transactions with Indonesian examples
 const initialData: FinTrackData = {
   transactions: [
-    { id: '1', type: 'expense', name: 'Monthly Groceries', amount: 250, category: 'Groceries', date: '2024-07-01', description: 'Aldi haul' },
-    { id: 'tx-income-1', type: 'income', name: 'Initial Balance Deposit', amount: 1000, category: 'Funds Added', date: '2024-06-28', description: 'Starting funds' },
-    { id: '2', type: 'expense', name: 'Netflix Subscription', amount: 15.99, category: 'Subscriptions', date: '2024-07-05', description: 'Monthly plan' },
-    { id: '3', type: 'expense', name: 'Gas Bill', amount: 75.50, category: 'Utilities', date: '2024-07-10' },
-    { id: 'tx-income-2', type: 'income', name: 'Freelance Payment', amount: 500, category: 'Funds Added', date: '2024-07-11', description: 'Web design project' },
-    { id: '4', type: 'expense', name: 'Dinner with Friends', amount: 60, category: 'Food & Dining', date: '2024-07-12', description: 'Italian place' },
-    { id: '5', type: 'expense', name: 'New Book', amount: 22, category: 'Shopping', date: '2024-07-15' },
+    { id: 'tx-income-1', type: 'income', name: 'Gaji Awal Bulan', amount: 5000000, category: 'Funds Added', date: '2024-07-01', description: 'Gaji Juli dari Perusahaan X' },
+    { id: 'tx-expense-1', type: 'expense', name: 'Bayar Kos Agustus', amount: 1200000, category: 'Housing', date: '2024-07-02', description: 'Sewa kamar kos bulan Agustus' },
+    { id: 'tx-expense-2', type: 'expense', name: 'Belanja Kebutuhan Pokok', amount: 750000, category: 'Groceries', date: '2024-07-03', description: 'Belanja di Super Indo' },
+    { id: 'tx-expense-3', type: 'expense', name: 'Tagihan Listrik Juli', amount: 200000, category: 'Utilities', date: '2024-07-05' },
+    { id: 'tx-expense-4', type: 'expense', name: 'Langganan Streaming Vidio', amount: 49000, category: 'Subscriptions', date: '2024-07-06', description: 'Paket bulanan' },
+    { id: 'tx-expense-5', type: 'expense', name: 'Isi Bensin Pertamax', amount: 60000, category: 'Transport', date: '2024-07-07', description: 'Untuk motor Vario' },
+    { id: 'tx-expense-6', type: 'expense', name: 'Makan Siang Warteg Bahari', amount: 25000, category: 'Food & Dining', date: '2024-07-08' },
+    { id: 'tx-expense-7', type: 'expense', name: 'Beli Buku "Filosofi Teras"', amount: 85000, category: 'Shopping', date: '2024-07-09', description: 'Di Gramedia' },
+    { id: 'tx-income-2', type: 'income', name: 'Bonus Proyek Akhir', amount: 1500000, category: 'Funds Added', date: '2024-07-10', description: 'Bonus penyelesaian proyek Y' },
+    { id: 'tx-expense-8', type: 'expense', name: 'Nonton Bioskop XXI', amount: 50000, category: 'Entertainment', date: '2024-07-11', description: 'Film Agak Laen' },
   ],
   // Calculate initial balance from the sum of income minus sum of expenses in initial transactions
-  currentBalance: 1000 + 500 - (250 + 15.99 + 75.50 + 60 + 22),
+  // Income: 5,000,000 + 1,500,000 = 6,500,000
+  // Expenses: 1,200,000 + 750,000 + 200,000 + 49,000 + 60,000 + 25,000 + 85,000 + 50,000 = 2,419,000
+  // Balance: 6,500,000 - 2,419,000 = 4,081,000
+  currentBalance: 4081000,
 };
 
 
@@ -94,7 +100,7 @@ export function ExpenseProvider({ children }: { children: ReactNode }) {
     const newIncome: Income = {
       id: new Date().toISOString() + Math.random().toString(36).substring(2, 9),
       type: 'income',
-      name: description || "Funds Added",
+      name: description || "Dana Ditambahkan", // Changed to Indonesian
       amount: amount,
       date: format(new Date(), "yyyy-MM-dd"),
       category: 'Funds Added',
@@ -140,3 +146,4 @@ export function useExpenses() {
   }
   return context;
 }
+
