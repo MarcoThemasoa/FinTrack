@@ -32,6 +32,12 @@ import { useToast } from "@/hooks/use-toast";
 import { useRouter } from "next/navigation";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 
+// Filter out 'Funds Added' for expense categories
+const availableExpenseCategories = EXPENSE_CATEGORIES.filter(
+  (cat) => cat !== 'Funds Added'
+) as [Exclude<ExpenseCategory, 'Funds Added'>, ...Exclude<ExpenseCategory, 'Funds Added'>[]];
+
+
 const formSchema = z.object({
   name: z.string().min(2, {
     message: "Expense name must be at least 2 characters.",
@@ -41,8 +47,8 @@ const formSchema = z.object({
   amount: z.coerce.number().positive({
     message: "Amount must be a positive number.",
   }),
-  category: z.enum(EXPENSE_CATEGORIES, {
-    errorMap: () => ({ message: "Please select a valid category." }),
+  category: z.enum(availableExpenseCategories, { // Use filtered categories
+    errorMap: () => ({ message: "Please select a valid expense category." }),
   }),
   date: z.date({
     required_error: "A date for the expense is required.",
@@ -69,9 +75,12 @@ export function ExpenseForm() {
   });
 
   function onSubmit(values: z.infer<typeof formSchema>) {
+    // The addExpense function in context will handle adding the 'type: expense'
     addExpense({
       ...values,
       date: format(values.date, "yyyy-MM-dd"), // Format date to string
+      // Ensure the category is correctly typed if needed by addExpense signature
+      category: values.category as Exclude<ExpenseCategory, 'Funds Added'>,
     });
     toast({
       title: "Expense Added",
@@ -79,7 +88,7 @@ export function ExpenseForm() {
       variant: "default",
     });
     form.reset();
-    router.push("/"); // Navigate to dashboard after adding expense
+    router.push("/");
   }
 
   return (
@@ -112,7 +121,9 @@ export function ExpenseForm() {
                   <FormItem>
                     <FormLabel>Amount</FormLabel>
                     <FormControl>
-                      <Input type="number" step="0.01" placeholder="0.00" {...field} />
+                      <Input type="number" step="0.01" placeholder="0.00" {...field} 
+                       className="[appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -127,11 +138,11 @@ export function ExpenseForm() {
                     <Select onValueChange={field.onChange} defaultValue={field.value}>
                       <FormControl>
                         <SelectTrigger>
-                          <SelectValue placeholder="Select a category" />
+                          <SelectValue placeholder="Select an expense category" />
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        {EXPENSE_CATEGORIES.map((category) => (
+                        {availableExpenseCategories.map((category) => (
                           <SelectItem key={category} value={category}>
                             {category}
                           </SelectItem>

@@ -25,9 +25,11 @@ const formSchema = z.object({
   amount: z.coerce.number().positive({
     message: "Amount must be a positive number.",
   }),
-  description: z.string().max(500, {
-    message: "Description must not exceed 500 characters.",
-  }).optional(),
+  description: z.string().min(2, {
+    message: "Description must be at least 2 characters."
+  }).max(100, { // Matched max length with expense name for consistency
+    message: "Description must not exceed 100 characters.",
+  }).optional(), // Optional, but if provided, has min length
 });
 
 export function AddFundsForm() {
@@ -44,21 +46,21 @@ export function AddFundsForm() {
   });
 
   function onSubmit(values: z.infer<typeof formSchema>) {
-    addFunds(values.amount, values.description);
+    addFunds(values.amount, values.description || "Funds Added"); // Pass description to context
     toast({
       title: "Funds Added",
       description: `$${values.amount.toFixed(2)} has been successfully added to your balance.`,
       variant: "default",
     });
     form.reset();
-    router.push("/"); // Navigate to dashboard after adding funds
+    router.push("/");
   }
 
   return (
     <Card className="w-full max-w-lg mx-auto shadow-lg">
       <CardHeader>
         <CardTitle className="text-2xl">Add Funds to Balance</CardTitle>
-        <CardDescription>Enter the amount and an optional description for the funds you are adding.</CardDescription>
+        <CardDescription>Enter the amount and an optional description for the funds you are adding. This will be recorded as an income transaction.</CardDescription>
       </CardHeader>
       <CardContent>
         <Form {...form}>
@@ -82,10 +84,10 @@ export function AddFundsForm() {
               name="description"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Description (Optional)</FormLabel>
+                  <FormLabel>Description / Source</FormLabel>
                   <FormControl>
                     <Textarea
-                      placeholder="e.g., Monthly Salary, Gift Received"
+                      placeholder="e.g., Monthly Salary, Gift Received, Project Payment"
                       className="resize-none"
                       {...field}
                     />

@@ -10,16 +10,17 @@ export default function DashboardPage() {
       <Card className="shadow-lg">
         <CardHeader>
           <CardTitle className="text-3xl font-bold">Welcome to FinTrack!</CardTitle>
-          <CardDescription>Your personal finance dashboard. Manage your expenses, view reports, and get smart predictions.</CardDescription>
+          <CardDescription>Your personal finance dashboard. Manage your transactions, view reports, and get smart predictions.</CardDescription>
         </CardHeader>
         <CardContent>
-          <p>Get started by <a href="/add-expense" className="text-primary hover:underline font-medium">adding a new expense</a> or explore your financial overview below.</p>
+          <p>Get started by <a href="/add-expense" className="text-primary hover:underline font-medium">adding a new expense</a> or <a href="/add-funds" className="text-primary hover:underline font-medium">adding funds</a>. Explore your financial overview below.</p>
         </CardContent>
       </Card>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         <div className="lg:col-span-2">
-          <ExpenseList limit={5} title="Recent Expenses" description="A quick look at your latest financial activities." />
+          {/* ExpenseList now shows all transactions by default */}
+          <ExpenseList limit={5} title="Recent Transactions" description="A quick look at your latest financial activities." />
         </div>
         <div className="lg:col-span-1 space-y-8">
          <CurrentBalanceCard />

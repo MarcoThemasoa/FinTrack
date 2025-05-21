@@ -5,7 +5,7 @@ import React, { useState, useEffect } from 'react';
 import { useExpenses } from '@/context/expense-context';
 import { predictExpenses } from '@/ai/flows/predict-upcoming-expenses';
 import type { PredictExpensesInput, PredictExpensesOutput, PredictedExpenseItem } from '@/ai/flows/predict-upcoming-expenses';
-// Note: PredictedExpenseItem from flow and types.ts should be structurally compatible.
+import type { Expense, Transaction, ExpenseCategory } from '@/lib/types'; // Import Transaction
 
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
@@ -15,15 +15,17 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Loader2, Wand2, Info } from 'lucide-react';
 import { CategoryIcon } from './category-icon';
 import { Badge } from '../ui/badge';
-import type { ExpenseCategory } from '@/lib/types';
 
 export function ExpensePrediction() {
-  const { expenses, currentBalance } = useExpenses();
+  const { transactions, currentBalance } = useExpenses(); // Use transactions
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [predictionResult, setPredictionResult] = useState<PredictExpensesOutput | null>(null);
   const [period, setPeriod] = useState<string>("next month");
   const [totalPredictedAmount, setTotalPredictedAmount] = useState<number>(0);
+
+  // Filter out only expenses for prediction
+  const expensesForPrediction = transactions.filter(t => t.type === 'expense') as Expense[];
 
   useEffect(() => {
     if (predictionResult && Array.isArray(predictionResult.predictedExpenses)) {
@@ -40,16 +42,18 @@ export function ExpensePrediction() {
     setPredictionResult(null);
     setTotalPredictedAmount(0);
 
-    if (expenses.length < 3) {
-        setError("Not enough historical data. Please add at least 3 expenses for a better prediction.");
+    if (expensesForPrediction.length < 3) { // Use filtered expenses length
+        setError("Not enough historical expense data. Please add at least 3 actual expenses for a better prediction.");
         setLoading(false);
         return;
     }
 
-    const historicalDataForAI = expenses.map(exp => ({
+    const historicalDataForAI = expensesForPrediction.map(exp => ({ // Use filtered expenses
       category: exp.category,
       amount: exp.amount,
       date: exp.date,
+      name: exp.name, // Include name for more context to AI if prompt supports it
+      description: exp.description,
     }));
 
     const input: PredictExpensesInput = {
@@ -70,8 +74,8 @@ export function ExpensePrediction() {
 
   const renderPredictedExpensesTable = () => {
     if (!predictionResult || !Array.isArray(predictionResult.predictedExpenses) || predictionResult.predictedExpenses.length === 0) {
-      if (loading || error) return null; // Don't show "no expenses" if loading or error exists
-      if (predictionResult && predictionResult.predictedExpenses?.length === 0) { // Explicitly check for empty array after successful prediction
+      if (loading || error) return null;
+      if (predictionResult && predictionResult.predictedExpenses?.length === 0) {
         return <p className="text-muted-foreground text-center py-4">No specific expenses predicted for this period based on available data. Check the summary for more details.</p>;
       }
       return null;
@@ -91,6 +95,7 @@ export function ExpensePrediction() {
             <TableRow key={index}>
               <TableCell>
                 <Badge variant="outline" className="flex items-center gap-1.5 w-fit">
+                   {/* Cast item.category as it's coming from AI which might not be strictly typed to ExpenseCategory excluding 'Funds Added' */}
                   <CategoryIcon category={item.category as ExpenseCategory} className="h-3.5 w-3.5" /> 
                   {item.category}
                 </Badge>
@@ -127,7 +132,7 @@ export function ExpensePrediction() {
               <SelectItem value="next 6 months">Next 6 Months</SelectItem>
             </SelectContent>
           </Select>
-          <Button onClick={handlePredictExpenses} disabled={loading || expenses.length === 0} className="w-full sm:w-auto">
+          <Button onClick={handlePredictExpenses} disabled={loading || expensesForPrediction.length === 0} className="w-full sm:w-auto">
             {loading ? (
               <>
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
@@ -177,14 +182,14 @@ export function ExpensePrediction() {
           </div>
         )}
       </CardContent>
-      {expenses.length < 3 && expenses.length > 0 && (
+      {expensesForPrediction.length < 3 && expensesForPrediction.length > 0 && (
          <CardFooter>
-            <p className="text-sm text-muted-foreground">Add at least 3 expenses for more accurate predictions.</p>
+            <p className="text-sm text-muted-foreground">Add at least 3 actual expenses for more accurate predictions.</p>
          </CardFooter>
       )}
-       {expenses.length === 0 && (
+       {expensesForPrediction.length === 0 && (
          <CardFooter>
-            <p className="text-sm text-muted-foreground">Add some expenses first to enable predictions.</p>
+            <p className="text-sm text-muted-foreground">Add some actual expenses first to enable predictions.</p>
          </CardFooter>
       )}
     </Card>
