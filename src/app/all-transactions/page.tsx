@@ -8,7 +8,7 @@ export default function AllTransactionsPage() {
         showTitle={true}
         title="All Transactions"
         description="View and filter all your recorded financial activities."
-        fullHeight={true} 
+        fullHeight={false} // Changed from true to false
         showFilters={true} 
       />
     </div>
