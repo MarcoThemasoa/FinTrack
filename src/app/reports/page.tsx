@@ -6,9 +6,10 @@ export default function ReportsPage() {
     <div className="container mx-auto py-8">
       <ExpenseList 
         showTitle={true} 
-        title="All Transactions" // Changed title
-        description="A comprehensive list of all your recorded financial transactions (expenses and income)." // Updated description
+        title="All Transactions" 
+        description="A comprehensive list of all your recorded financial transactions. Use filters to narrow down by month and year." // Updated description
         fullHeight={true} 
+        showFilters={true} // Enable filters for this page
       />
     </div>
   );

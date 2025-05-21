@@ -1,7 +1,7 @@
 
 "use client";
 
-import React, { useState } from 'react'; // Import useState
+import React, { useState, useMemo, useEffect } from 'react';
 import { useExpenses } from "@/context/expense-context";
 import type { Transaction } from "@/lib/types";
 import {
@@ -14,8 +14,8 @@ import {
 } from "@/components/ui/table";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button"; // Import Button
-import { Trash2 } from 'lucide-react'; // Import Trash2 icon
+import { Button } from "@/components/ui/button";
+import { Trash2 } from 'lucide-react';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -26,11 +26,12 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
   AlertDialogTrigger,
-} from "@/components/ui/alert-dialog"; // Import AlertDialog components
-import { useToast } from "@/hooks/use-toast"; // Import useToast
+} from "@/components/ui/alert-dialog";
+import { useToast } from "@/hooks/use-toast";
 import { CategoryIcon } from "./category-icon";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { cn } from "@/lib/utils";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 interface ExpenseListProps {
   limit?: number;
@@ -38,6 +39,7 @@ interface ExpenseListProps {
   title?: string;
   description?: string;
   fullHeight?: boolean;
+  showFilters?: boolean; // New prop
 }
 
 export function ExpenseList({ 
@@ -45,13 +47,53 @@ export function ExpenseList({
   showTitle = true, 
   title = "Recent Transactions",
   description = "A list of your most recent financial activities.",
-  fullHeight = false
+  fullHeight = false,
+  showFilters = false // Default to false
 }: ExpenseListProps) {
   const { transactions, deleteTransaction } = useExpenses();
   const { toast } = useToast();
   const [transactionToDelete, setTransactionToDelete] = useState<Transaction | null>(null);
 
-  const displayedTransactions = limit ? transactions.slice(0, limit) : transactions;
+  const [selectedMonth, setSelectedMonth] = useState<string | null>(null);
+  const [selectedYear, setSelectedYear] = useState<string | null>(null);
+
+  const monthOptions = useMemo(() => [
+    { value: "01", label: "January" }, { value: "02", label: "February" },
+    { value: "03", label: "March" }, { value: "04", label: "April" },
+    { value: "05", label: "May" }, { value: "06", label: "June" },
+    { value: "07", label: "July" }, { value: "08", label: "August" },
+    { value: "09", label: "September" }, { value: "10", label: "October" },
+    { value: "11", label: "November" }, { value: "12", label: "December" },
+  ], []);
+
+  const availableYears = useMemo(() => {
+    if (!transactions || transactions.length === 0) return [new Date().getFullYear()];
+    const years = new Set<number>();
+    transactions.forEach(t => {
+      // Ensure date is valid before trying to get FullYear
+      const dateObj = new Date(t.date + 'T00:00:00'); // Ensures date is parsed as local
+      if (!isNaN(dateObj.getTime())) {
+        years.add(dateObj.getFullYear());
+      }
+    });
+    if (years.size === 0) return [new Date().getFullYear()]; // Fallback if no valid dates
+    return Array.from(years).sort((a, b) => b - a);
+  }, [transactions]);
+
+  const filteredTransactions = useMemo(() => {
+    if (!showFilters) return transactions; 
+
+    let items = [...transactions]; 
+    if (selectedYear) {
+      items = items.filter(t => t.date.startsWith(selectedYear));
+    }
+    if (selectedMonth && selectedYear) { 
+      items = items.filter(t => t.date.substring(5, 7) === selectedMonth);
+    }
+    return items;
+  }, [transactions, selectedMonth, selectedYear, showFilters]);
+
+  const displayedTransactions = limit ? filteredTransactions.slice(0, limit) : filteredTransactions;
 
   const handleDelete = (transactionId: string) => {
     deleteTransaction(transactionId);
@@ -60,102 +102,98 @@ export function ExpenseList({
       description: "The transaction has been successfully removed.",
       variant: "default",
     });
-    setTransactionToDelete(null); // Close dialog
+    setTransactionToDelete(null);
   };
-
-  if (transactions.length === 0) {
-    return (
-      <Card className="shadow-lg">
-        {showTitle && (
-          <CardHeader>
-            <CardTitle>{title}</CardTitle>
-            <CardDescription>{description}</CardDescription>
-          </CardHeader>
-        )}
-        <CardContent>
-          <p className="text-muted-foreground text-center py-8">No transactions recorded yet. Start by adding an expense or funds!</p>
-        </CardContent>
-      </Card>
-    );
-  }
-
-  const cardContent = (
-      <Table>
-        <TableHeader>
-          <TableRow>
-            <TableHead className="w-[100px]">Date</TableHead>
-            <TableHead>Name / Description</TableHead>
-            <TableHead>Category</TableHead>
-            <TableHead className="text-right">Amount</TableHead>
-            <TableHead className="w-[80px] text-center">Actions</TableHead> 
+  
+  const listContent = displayedTransactions.length > 0 ? (
+    <Table>
+      <TableHeader>
+        <TableRow>
+          <TableHead className="w-[100px]">Date</TableHead>
+          <TableHead>Name / Description</TableHead>
+          <TableHead>Category</TableHead>
+          <TableHead className="text-right">Amount</TableHead>
+          <TableHead className="w-[80px] text-center">Actions</TableHead> 
+        </TableRow>
+      </TableHeader>
+      <TableBody>
+        {displayedTransactions.map((transaction) => (
+          <TableRow key={transaction.id}>
+            <TableCell className="font-medium text-xs">
+              {new Date(transaction.date + 'T00:00:00').toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })}
+            </TableCell>
+            <TableCell>
+              <div className="font-medium">{transaction.name}</div>
+              {transaction.description && (
+                <div className="text-xs text-muted-foreground hidden md:block">
+                  {transaction.description}
+                </div>
+              )}
+            </TableCell>
+            <TableCell>
+              <Badge variant="outline" className="flex items-center gap-1.5 w-fit">
+                <CategoryIcon category={transaction.category} className="h-3.5 w-3.5" />
+                {transaction.category}
+              </Badge>
+            </TableCell>
+            <TableCell 
+              className={cn(
+                "text-right font-semibold",
+                transaction.type === 'income' ? 'text-green-600 dark:text-green-500' : 'text-red-600 dark:text-red-500'
+              )}
+            >
+              {transaction.type === 'income' ? `+$${transaction.amount.toFixed(2)}` : `-$${transaction.amount.toFixed(2)}`}
+            </TableCell>
+            <TableCell className="text-center">
+              <AlertDialog>
+                <AlertDialogTrigger asChild>
+                  <Button 
+                    variant="ghost" 
+                    size="icon" 
+                    onClick={() => setTransactionToDelete(transaction)}
+                    aria-label="Delete transaction"
+                  >
+                    <Trash2 className="h-4 w-4 text-destructive" />
+                  </Button>
+                </AlertDialogTrigger>
+                {transactionToDelete && transactionToDelete.id === transaction.id && (
+                  <AlertDialogContent>
+                    <AlertDialogHeader>
+                      <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+                      <AlertDialogDescription>
+                        This action cannot be undone. This will permanently delete the transaction
+                        "{transactionToDelete.name}" (Amount: ${transactionToDelete.amount.toFixed(2)})
+                        and adjust your balance accordingly.
+                      </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                      <AlertDialogCancel onClick={() => setTransactionToDelete(null)}>Cancel</AlertDialogCancel>
+                      <AlertDialogAction onClick={() => handleDelete(transactionToDelete.id)} className={localButtonVariants({ variant: "destructive" })}>
+                        Delete
+                      </AlertDialogAction>
+                    </AlertDialogFooter>
+                  </AlertDialogContent>
+                )}
+              </AlertDialog>
+            </TableCell>
           </TableRow>
-        </TableHeader>
-        <TableBody>
-          {displayedTransactions.map((transaction) => (
-            <TableRow key={transaction.id}>
-              <TableCell className="font-medium text-xs">
-                {new Date(transaction.date + 'T00:00:00').toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })}
-              </TableCell>
-              <TableCell>
-                <div className="font-medium">{transaction.name}</div>
-                {transaction.description && (
-                  <div className="text-xs text-muted-foreground hidden md:block">
-                    {transaction.description}
-                  </div>
-                )}
-              </TableCell>
-              <TableCell>
-                <Badge variant="outline" className="flex items-center gap-1.5 w-fit">
-                  <CategoryIcon category={transaction.category} className="h-3.5 w-3.5" />
-                  {transaction.category}
-                </Badge>
-              </TableCell>
-              <TableCell 
-                className={cn(
-                  "text-right font-semibold",
-                  transaction.type === 'income' ? 'text-green-600 dark:text-green-500' : 'text-red-600 dark:text-red-500'
-                )}
-              >
-                {transaction.type === 'income' ? `+$${transaction.amount.toFixed(2)}` : `-$${transaction.amount.toFixed(2)}`}
-              </TableCell>
-              <TableCell className="text-center">
-                <AlertDialog>
-                  <AlertDialogTrigger asChild>
-                    <Button 
-                      variant="ghost" 
-                      size="icon" 
-                      onClick={() => setTransactionToDelete(transaction)}
-                      aria-label="Delete transaction"
-                    >
-                      <Trash2 className="h-4 w-4 text-destructive" />
-                    </Button>
-                  </AlertDialogTrigger>
-                  {/* Conditionally render content only if transactionToDelete matches current transaction to avoid multiple dialogs logic issues */}
-                  {transactionToDelete && transactionToDelete.id === transaction.id && (
-                    <AlertDialogContent>
-                      <AlertDialogHeader>
-                        <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
-                        <AlertDialogDescription>
-                          This action cannot be undone. This will permanently delete the transaction
-                          "{transactionToDelete.name}" (Amount: ${transactionToDelete.amount.toFixed(2)})
-                          and adjust your balance accordingly.
-                        </AlertDialogDescription>
-                      </AlertDialogHeader>
-                      <AlertDialogFooter>
-                        <AlertDialogCancel onClick={() => setTransactionToDelete(null)}>Cancel</AlertDialogCancel>
-                        <AlertDialogAction onClick={() => handleDelete(transactionToDelete.id)} className={buttonVariants({ variant: "destructive" })}>
-                          Delete
-                        </AlertDialogAction>
-                      </AlertDialogFooter>
-                    </AlertDialogContent>
-                  )}
-                </AlertDialog>
-              </TableCell>
-            </TableRow>
-          ))}
-        </TableBody>
-      </Table>
+        ))}
+      </TableBody>
+    </Table>
+  ) : (
+     <div className={cn("text-muted-foreground text-center", fullHeight ? "flex h-full items-center justify-center" : "py-8")}>
+        <p>
+        {showFilters && (selectedMonth || selectedYear)
+            ? "No transactions match your filters for the selected period."
+            : "No transactions recorded yet. Start by adding an expense or funds!"}
+        </p>
+    </div>
   );
+
+  const scrollAreaHeightClass = cn({
+    "h-[calc(100vh-328px)]": fullHeight && showFilters,
+    "h-[calc(100vh-258px)]": fullHeight && !showFilters,
+  });
 
 
   return (
@@ -166,24 +204,70 @@ export function ExpenseList({
           <CardDescription>{description}</CardDescription>
         </CardHeader>
       )}
-      <CardContent className={fullHeight ? "p-0" : ""}>
+      <CardContent className="p-6"> 
+        {showFilters && (
+          <div className="flex flex-col sm:flex-row gap-4 mb-6 sm:items-center border-b pb-6">
+            <Select 
+              value={selectedYear || ""} 
+              onValueChange={(value) => {
+                const newYear = value === "" ? null : value;
+                setSelectedYear(newYear);
+                if (!newYear) {
+                  setSelectedMonth(null); 
+                }
+              }}
+            >
+              <SelectTrigger className="w-full sm:w-[120px]">
+                <SelectValue placeholder="Year" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="">All Years</SelectItem>
+                {availableYears.map(year => (
+                  <SelectItem key={year} value={String(year)}>{year}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <Select 
+              value={selectedMonth || ""} 
+              onValueChange={(value) => setSelectedMonth(value === "" ? null : value)}
+              disabled={!selectedYear} 
+            >
+              <SelectTrigger className="w-full sm:w-[150px]">
+                <SelectValue placeholder="Month" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="">All Months</SelectItem>
+                {monthOptions.map(month => (
+                  <SelectItem key={month.value} value={month.value}>{month.label}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <Button 
+              variant="outline" 
+              onClick={() => { setSelectedMonth(null); setSelectedYear(null); }} 
+              className="w-full sm:w-auto"
+              disabled={!selectedMonth && !selectedYear}
+            >
+              Clear Filters
+            </Button>
+          </div>
+        )}
         {fullHeight ? (
-          <ScrollArea className="h-[calc(100vh-258px)]">
-           {cardContent}
+          <ScrollArea className={scrollAreaHeightClass || undefined}>
+           {listContent}
           </ScrollArea>
         ) : (
-          cardContent
+          listContent
         )}
       </CardContent>
     </Card>
   );
 }
 
-// Helper to get buttonVariants (if not directly imported for AlertDialogAction)
-// Ensure this is available or adjust the className for AlertDialogAction
-const buttonVariants = ({ variant }: { variant: string }) => {
+const localButtonVariants = ({ variant }: { variant: string }) => {
   if (variant === "destructive") {
     return "bg-destructive text-destructive-foreground hover:bg-destructive/90";
   }
   return "";
 };
+
