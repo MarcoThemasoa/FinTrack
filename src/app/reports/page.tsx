@@ -1,16 +1,10 @@
 
-import { ExpenseList } from "@/components/core/expense-list";
+// This file can be deleted as the "All Expenses" tab is being removed.
+// If you prefer, I can leave an empty component here or a redirect,
+// but typically deleting the file is the cleanest approach when removing a route.
 
+// For now, I will leave it empty to signify its removal.
+// If you want to fully delete it, please let me know.
 export default function ReportsPage() {
-  return (
-    <div className="container mx-auto py-8">
-      <ExpenseList 
-        showTitle={true} 
-        title="All Transactions" 
-        description="A comprehensive list of all your recorded financial transactions. Use filters to narrow down by month and year." // Updated description
-        fullHeight={true} 
-        showFilters={true} // Enable filters for this page
-      />
-    </div>
-  );
+  return null; // Or an empty fragment <> </>
 }
