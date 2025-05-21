@@ -11,9 +11,7 @@ const Table = React.forwardRef<
       ref={ref}
       className={cn("w-full caption-bottom text-sm", className)}
       {...props} // Pass remaining props
-    >
-      {children} {/* Explicitly render children */}
-    </table>
+    >{children}</table> {/* Explicitly render children, moved to same line */}
   </div>
 ))
 Table.displayName = "Table"
