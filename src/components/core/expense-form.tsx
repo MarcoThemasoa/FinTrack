@@ -1,3 +1,4 @@
+
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -74,8 +75,8 @@ export function ExpenseForm() {
     });
     toast({
       title: "Expense Added",
-      description: `"${values.name}" has been successfully added.`,
-      variant: "default", // 'default' variant uses primary color implicitly based on theme
+      description: `"${values.name}" has been successfully added and balance updated.`,
+      variant: "default",
     });
     form.reset();
     router.push("/"); // Navigate to dashboard after adding expense
@@ -85,7 +86,7 @@ export function ExpenseForm() {
     <Card className="w-full max-w-2xl mx-auto shadow-lg">
       <CardHeader>
         <CardTitle className="text-2xl">Add New Expense</CardTitle>
-        <CardDescription>Fill in the details of your expense below.</CardDescription>
+        <CardDescription>Fill in the details of your expense below. The amount will be deducted from your current balance.</CardDescription>
       </CardHeader>
       <CardContent>
         <Form {...form}>

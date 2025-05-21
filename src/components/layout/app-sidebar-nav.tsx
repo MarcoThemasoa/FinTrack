@@ -1,8 +1,9 @@
+
 "use client";
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { LayoutDashboard, PlusCircle, ListChecks, Bot } from 'lucide-react';
+import { LayoutDashboard, PlusCircle, ListChecks, DollarSign } from 'lucide-react'; // Added DollarSign
 import {
   SidebarMenu,
   SidebarMenuItem,
@@ -13,8 +14,8 @@ import { cn } from '@/lib/utils';
 const navItems = [
   { href: '/', label: 'Dashboard', icon: LayoutDashboard },
   { href: '/add-expense', label: 'Add Expense', icon: PlusCircle },
+  { href: '/add-funds', label: 'Add Funds', icon: DollarSign }, // New item
   { href: '/reports', label: 'All Expenses', icon: ListChecks },
-  // { href: '/predictions', label: 'Predictions', icon: Bot }, // Future link if predictions get their own page
 ];
 
 export function AppSidebarNav() {

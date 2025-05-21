@@ -26,13 +26,15 @@ interface ExpenseContextType {
   currentBalance: number;
   addExpense: (expense: Omit<Expense, 'id'>) => void;
   updateCurrentBalance: (newBalance: number) => void;
+  addFunds: (amount: number, description?: string) => void;
 }
 
 const ExpenseContext = createContext<ExpenseContextType | undefined>(undefined);
 
 export function ExpenseProvider({ children }: { children: ReactNode }) {
-  const [expenses, setExpenses] = useState<Expense[]>(initialData.expenses);
-  const [currentBalance, setCurrentBalanceState] = useState<number>(initialData.currentBalance);
+  const [expenses, setExpenses] = useState<Expense[]>([]);
+  const [currentBalance, setCurrentBalanceState] = useState<number>(0);
+  const [isLoaded, setIsLoaded] = useState(false);
 
   useEffect(() => {
     // Load data from localStorage on initial client-side render
@@ -45,6 +47,8 @@ export function ExpenseProvider({ children }: { children: ReactNode }) {
           setCurrentBalanceState(parsedData.currentBalance ?? initialData.currentBalance);
         } else {
           // If no data in localStorage, prime it with initialData
+          setExpenses(initialData.expenses);
+          setCurrentBalanceState(initialData.currentBalance);
           localStorage.setItem('finTrackData', JSON.stringify(initialData));
         }
       } catch (error) {
@@ -55,17 +59,19 @@ export function ExpenseProvider({ children }: { children: ReactNode }) {
          if (typeof window !== 'undefined') {
             localStorage.setItem('finTrackData', JSON.stringify(initialData));
          }
+      } finally {
+        setIsLoaded(true);
       }
     }
   }, []);
 
   useEffect(() => {
     // Save data to localStorage whenever expenses or currentBalance change
-    if (typeof window !== 'undefined') {
+    if (typeof window !== 'undefined' && isLoaded) {
       const dataToSave: FinTrackData = { expenses, currentBalance };
       localStorage.setItem('finTrackData', JSON.stringify(dataToSave));
     }
-  }, [expenses, currentBalance]);
+  }, [expenses, currentBalance, isLoaded]);
 
   const addExpense = (expenseData: Omit<Expense, 'id'>) => {
     const newExpense: Expense = {
@@ -73,14 +79,20 @@ export function ExpenseProvider({ children }: { children: ReactNode }) {
       id: new Date().toISOString() + Math.random().toString(), // Simple unique ID
     };
     setExpenses((prevExpenses) => [newExpense, ...prevExpenses]);
+    setCurrentBalanceState((prevBalance) => prevBalance - newExpense.amount);
   };
 
   const updateCurrentBalance = (newBalance: number) => {
     setCurrentBalanceState(newBalance);
   };
 
+  const addFunds = (amount: number, description?: string) => {
+    // For now, description is not stored, but can be used later for logging income.
+    setCurrentBalanceState((prevBalance) => prevBalance + amount);
+  };
+
   return (
-    <ExpenseContext.Provider value={{ expenses, addExpense, currentBalance, updateCurrentBalance }}>
+    <ExpenseContext.Provider value={{ expenses, addExpense, currentBalance, updateCurrentBalance, addFunds }}>
       {children}
     </ExpenseContext.Provider>
   );
