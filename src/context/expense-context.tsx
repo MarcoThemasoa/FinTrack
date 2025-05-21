@@ -1,15 +1,10 @@
 
 "use client";
 
-import type { Transaction, Expense, Income, ExpenseCategory } from '@/lib/types';
+import type { Transaction, Expense, Income, ExpenseCategory, FinTrackData } from '@/lib/types'; // Ensure FinTrackData is imported
 import type { ReactNode } from 'react';
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { format } from "date-fns";
-
-interface FinTrackData {
-  transactions: Transaction[];
-  currentBalance: number;
-}
 
 // Initial data now includes types for transactions with Indonesian examples
 const initialData: FinTrackData = {
@@ -24,11 +19,7 @@ const initialData: FinTrackData = {
     { id: 'tx-expense-7', type: 'expense', name: 'Kebutuhan Pribadi (Skincare, dll)', amount: 250000, category: 'Personal Care', date: '2024-07-09', description: 'Pembelian produk perawatan' },
     { id: 'tx-income-2', type: 'income', name: 'Proyek Sampingan Selesai', amount: 2500000, category: 'Funds Added', date: '2024-07-10', description: 'Pembayaran proyek desain web' },
     { id: 'tx-expense-8', type: 'expense', name: 'Nonton Film & Cemilan', amount: 150000, category: 'Entertainment', date: '2024-07-11', description: 'Tiket bioskop dan popcorn' },
-  ],
-  // Recalculate initial balance:
-  // Total Income: 7,500,000 + 2,500,000 = 10,000,000
-  // Total Expenses: 2,000,000 + 1,200,000 + 350,000 + 400,000 + 500,000 + 300,000 + 250,000 + 150,000 = 5,150,000
-  // Balance: 10,000,000 - 5,150,000 = 4,850,000
+  ].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()), // Pre-sort initial transactions
   currentBalance: 4850000,
 };
 
@@ -45,39 +36,43 @@ interface ExpenseContextType {
 const ExpenseContext = createContext<ExpenseContextType | undefined>(undefined);
 
 export function ExpenseProvider({ children }: { children: ReactNode }) {
-  const [transactions, setTransactions] = useState<Transaction[]>([]);
-  const [currentBalance, setCurrentBalanceState] = useState<number>(0);
+  const [transactions, setTransactions] = useState<Transaction[]>(initialData.transactions);
+  const [currentBalance, setCurrentBalanceState] = useState<number>(initialData.currentBalance);
   const [isLoaded, setIsLoaded] = useState(false);
 
   useEffect(() => {
+    // This effect runs once on the client after initial mount to sync with localStorage
     if (typeof window !== 'undefined') {
+      setIsLoaded(true); // Signal that client has mounted and localStorage can be accessed
       try {
         const localDataString = localStorage.getItem('finTrackData');
         if (localDataString) {
           const parsedData = JSON.parse(localDataString) as Partial<FinTrackData>;
-          // Ensure transactions are sorted by date upon loading
           const loadedTransactions = parsedData.transactions ?? initialData.transactions;
           setTransactions(loadedTransactions.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()));
           setCurrentBalanceState(parsedData.currentBalance ?? initialData.currentBalance);
         } else {
-          setTransactions(initialData.transactions.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()));
-          setCurrentBalanceState(initialData.currentBalance);
-          localStorage.setItem('finTrackData', JSON.stringify(initialData));
+          // No data in localStorage, so save the initialData (which is already in state)
+          localStorage.setItem('finTrackData', JSON.stringify({
+            transactions: initialData.transactions, // Use already sorted initialData.transactions
+            currentBalance: initialData.currentBalance
+          }));
         }
       } catch (error) {
-        console.error("Error loading data from localStorage:", error);
-        setTransactions(initialData.transactions.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()));
-        setCurrentBalanceState(initialData.currentBalance);
-         if (typeof window !== 'undefined') {
-            localStorage.setItem('finTrackData', JSON.stringify(initialData));
-         }
-      } finally {
-        setIsLoaded(true);
+        console.error("Error loading/parsing data from localStorage:", error);
+        // If there's an error, state remains as initialData.
+        // Attempt to re-save initialData to localStorage in case it was corrupted.
+        localStorage.setItem('finTrackData', JSON.stringify({
+            transactions: initialData.transactions,
+            currentBalance: initialData.currentBalance
+        }));
       }
     }
-  }, []);
+  }, []); // Empty dependency array ensures this runs once on mount (client-side)
 
   useEffect(() => {
+    // This effect saves data to localStorage whenever transactions or balance change,
+    // but only after the initial client-side load is complete (isLoaded is true).
     if (typeof window !== 'undefined' && isLoaded) {
       const dataToSave: FinTrackData = { 
         transactions: transactions.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()), 
@@ -131,14 +126,6 @@ export function ExpenseProvider({ children }: { children: ReactNode }) {
                              .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
     });
   };
-
-  // Ensure transactions are always sorted
-  useEffect(() => {
-    if (isLoaded) {
-      setTransactions(prev => [...prev].sort((a,b) => new Date(b.date).getTime() - new Date(a.date).getTime()));
-    }
-  }, [isLoaded]);
-
 
   return (
     <ExpenseContext.Provider value={{ transactions, addExpense, currentBalance, updateCurrentBalance, addFunds, deleteTransaction }}>

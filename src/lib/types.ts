@@ -1,3 +1,4 @@
+
 export const EXPENSE_CATEGORIES = [
   'Groceries',
   'Housing',
@@ -54,4 +55,10 @@ export interface PredictedExpenseItem {
 export interface PredictedExpensesOutput {
   predictedExpenses: PredictedExpenseItem[];
   summary: string;
+}
+
+// Defines the shape of the data stored in localStorage and used by the context
+export interface FinTrackData {
+  transactions: Transaction[];
+  currentBalance: number;
 }
