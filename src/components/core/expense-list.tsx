@@ -1,8 +1,9 @@
 
 "use client";
 
+import React, { useState } from 'react'; // Import useState
 import { useExpenses } from "@/context/expense-context";
-import type { Transaction } from "@/lib/types"; // Updated to use Transaction type
+import type { Transaction } from "@/lib/types";
 import {
   Table,
   TableBody,
@@ -13,6 +14,20 @@ import {
 } from "@/components/ui/table";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button"; // Import Button
+import { Trash2 } from 'lucide-react'; // Import Trash2 icon
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog"; // Import AlertDialog components
+import { useToast } from "@/hooks/use-toast"; // Import useToast
 import { CategoryIcon } from "./category-icon";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { cn } from "@/lib/utils";
@@ -28,13 +43,25 @@ interface ExpenseListProps {
 export function ExpenseList({ 
   limit, 
   showTitle = true, 
-  title = "Recent Transactions", // Changed title to reflect income and expenses
+  title = "Recent Transactions",
   description = "A list of your most recent financial activities.",
   fullHeight = false
 }: ExpenseListProps) {
-  const { transactions } = useExpenses(); // Use transactions from context
+  const { transactions, deleteTransaction } = useExpenses();
+  const { toast } = useToast();
+  const [transactionToDelete, setTransactionToDelete] = useState<Transaction | null>(null);
 
   const displayedTransactions = limit ? transactions.slice(0, limit) : transactions;
+
+  const handleDelete = (transactionId: string) => {
+    deleteTransaction(transactionId);
+    toast({
+      title: "Transaction Deleted",
+      description: "The transaction has been successfully removed.",
+      variant: "default",
+    });
+    setTransactionToDelete(null); // Close dialog
+  };
 
   if (transactions.length === 0) {
     return (
@@ -60,6 +87,7 @@ export function ExpenseList({
             <TableHead>Name / Description</TableHead>
             <TableHead>Category</TableHead>
             <TableHead className="text-right">Amount</TableHead>
+            <TableHead className="w-[80px] text-center">Actions</TableHead> 
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -70,12 +98,7 @@ export function ExpenseList({
               </TableCell>
               <TableCell>
                 <div className="font-medium">{transaction.name}</div>
-                {transaction.description && transaction.type === 'expense' && ( // Show description for expenses
-                  <div className="text-xs text-muted-foreground hidden md:block">
-                    {transaction.description}
-                  </div>
-                )}
-                 {transaction.type === 'income' && transaction.description && ( // Show description for income if different from name
+                {transaction.description && (
                   <div className="text-xs text-muted-foreground hidden md:block">
                     {transaction.description}
                   </div>
@@ -94,6 +117,39 @@ export function ExpenseList({
                 )}
               >
                 {transaction.type === 'income' ? `+$${transaction.amount.toFixed(2)}` : `-$${transaction.amount.toFixed(2)}`}
+              </TableCell>
+              <TableCell className="text-center">
+                <AlertDialog>
+                  <AlertDialogTrigger asChild>
+                    <Button 
+                      variant="ghost" 
+                      size="icon" 
+                      onClick={() => setTransactionToDelete(transaction)}
+                      aria-label="Delete transaction"
+                    >
+                      <Trash2 className="h-4 w-4 text-destructive" />
+                    </Button>
+                  </AlertDialogTrigger>
+                  {/* Conditionally render content only if transactionToDelete matches current transaction to avoid multiple dialogs logic issues */}
+                  {transactionToDelete && transactionToDelete.id === transaction.id && (
+                    <AlertDialogContent>
+                      <AlertDialogHeader>
+                        <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+                        <AlertDialogDescription>
+                          This action cannot be undone. This will permanently delete the transaction
+                          "{transactionToDelete.name}" (Amount: ${transactionToDelete.amount.toFixed(2)})
+                          and adjust your balance accordingly.
+                        </AlertDialogDescription>
+                      </AlertDialogHeader>
+                      <AlertDialogFooter>
+                        <AlertDialogCancel onClick={() => setTransactionToDelete(null)}>Cancel</AlertDialogCancel>
+                        <AlertDialogAction onClick={() => handleDelete(transactionToDelete.id)} className={buttonVariants({ variant: "destructive" })}>
+                          Delete
+                        </AlertDialogAction>
+                      </AlertDialogFooter>
+                    </AlertDialogContent>
+                  )}
+                </AlertDialog>
               </TableCell>
             </TableRow>
           ))}
@@ -122,3 +178,12 @@ export function ExpenseList({
     </Card>
   );
 }
+
+// Helper to get buttonVariants (if not directly imported for AlertDialogAction)
+// Ensure this is available or adjust the className for AlertDialogAction
+const buttonVariants = ({ variant }: { variant: string }) => {
+  if (variant === "destructive") {
+    return "bg-destructive text-destructive-foreground hover:bg-destructive/90";
+  }
+  return "";
+};

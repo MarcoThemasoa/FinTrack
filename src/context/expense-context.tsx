@@ -33,6 +33,7 @@ interface ExpenseContextType {
   addExpense: (expenseData: Omit<Expense, 'id' | 'type'>) => void;
   updateCurrentBalance: (newBalance: number) => void;
   addFunds: (amount: number, description?: string) => void;
+  deleteTransaction: (transactionId: string) => void; // New function
 }
 
 const ExpenseContext = createContext<ExpenseContextType | undefined>(undefined);
@@ -70,10 +71,6 @@ export function ExpenseProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     if (typeof window !== 'undefined' && isLoaded) {
-      // Recalculate balance from transactions to ensure consistency if manual edits occur or for robust state.
-      // However, for performance and simplicity with direct balance updates, we might keep currentBalance as the source of truth
-      // and only update it through dedicated functions.
-      // For now, we'll save the current state of transactions and currentBalance.
       const dataToSave: FinTrackData = { transactions, currentBalance };
       localStorage.setItem('finTrackData', JSON.stringify(dataToSave));
     }
@@ -107,6 +104,20 @@ export function ExpenseProvider({ children }: { children: ReactNode }) {
     setCurrentBalanceState((prevBalance) => prevBalance + amount);
   };
   
+  const deleteTransaction = (transactionId: string) => {
+    setTransactions((prevTransactions) => {
+      const transactionToDelete = prevTransactions.find(t => t.id === transactionId);
+      if (transactionToDelete) {
+        if (transactionToDelete.type === 'expense') {
+          setCurrentBalanceState((prevBalance) => prevBalance + transactionToDelete.amount);
+        } else if (transactionToDelete.type === 'income') {
+          setCurrentBalanceState((prevBalance) => prevBalance - transactionToDelete.amount);
+        }
+      }
+      return prevTransactions.filter((transaction) => transaction.id !== transactionId);
+    });
+  };
+
   // Sort transactions initially and after any change
   useEffect(() => {
     if (isLoaded) {
@@ -116,7 +127,7 @@ export function ExpenseProvider({ children }: { children: ReactNode }) {
 
 
   return (
-    <ExpenseContext.Provider value={{ transactions, addExpense, currentBalance, updateCurrentBalance, addFunds }}>
+    <ExpenseContext.Provider value={{ transactions, addExpense, currentBalance, updateCurrentBalance, addFunds, deleteTransaction }}>
       {children}
     </ExpenseContext.Provider>
   );
